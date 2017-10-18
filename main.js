@@ -24,11 +24,6 @@
 	}
 
 	function resolveAllowed(context, container){
-		/*if (context.getOwnAllowedProps) {
-			context.getOwnAllowedProps().forEach(function(item){
-				container.push(item);
-			});
-		}*/
 		if (context.allowed) {
 			context.allowed.forEach(function(item){
 				container.push(item);
@@ -36,11 +31,21 @@
 		}
 	}
 
-	function getAllowed(context,container){
-		if (context.getOwnAllowedProps) {
-			resolveAllowed(context, container);	
+	function getAllAllowed(parent, self){
+		let new_props = self.getOwnAllowedProps().slice(0);
+		if (parent.getAllAllowedProps) {
+			var old_props = getAllAllowed(parent.__proto__, parent);
+		} else {
+			return new_props;
 		}
-		return container;
+		if (old_props && old_props.length > 0) {
+			old_props.forEach(function(prop){
+				if (new_props.indexOf(prop)==-1) {
+					new_props.push(prop);
+				}
+			});
+		}
+		return new_props;
 	}
 
 	function create(){
@@ -77,7 +82,7 @@
 				return allowed_props;
 			}},
 			getAllAllowedProps : {value : function(){
-				return parent;
+				return getAllAllowed(this.__proto__, this)
 			}}
 		});
 		return _instance;
@@ -100,4 +105,10 @@ let employee = person.extend({
 	allowed : ['salary']
 });
 
-console.log(employee);
+let programmer = employee.extend({
+	name : "Programmer",
+	allowed : ['language']
+})
+
+let horacio = programmer.create();
+console.log(horacio);
