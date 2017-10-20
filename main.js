@@ -17,6 +17,23 @@ The interface exposes two shared methods accross all sub classes :
 (function(window){
 	//Create a namespace in window called app which holds the interface of the singleton app object instance
 	window.app = (function(){
+		let lang = "en";
+
+		let translations = {
+			es : {
+				"constructor" : "Uso ilegal de la funcion Constructora. El objeto App solo puede ser usado como la interfaz a traves de sus metodos.",
+				"lang" : "Argumento Ilegal. El tipo de idioma debe ser String y tener como maximo 2 caracteres.",
+				"name" : "Cantidad invalida de argumentos. Por lo menos una propiedad 'name' debe ser creada.",
+				"typeObject" : "Argumento invalido. Parametos del constructor deben ser del tipo Object"
+
+			},
+			en : {
+				"constructor" : "Illegal use of Constructor function. The App object can only be used as an interface through its methods",
+				"lang" : "Illegal Argument. Language must be of type String and have a maximum of 2 characters.",
+				"name" : "Invalid argument count. At least a 'name' property must be set.",
+				"typeObject" : "Invalid argument. Constructor properies must be of type Object"
+			}
+		}
 		//Control the singleton with a private local variable 
 		let instance;
 		//Control each app extension and their respective allowed properties
@@ -26,6 +43,14 @@ The interface exposes two shared methods accross all sub classes :
 			return Math.floor(Math.random()*(max-min+1))+min
 		}
 
+		function setLang(lan){
+			if (typeof lan == "string" && lan.length == 2) {
+				lang = lan;
+			} else {
+				throw Error(translations[lang].lang)
+			}
+		}
+
 		function create(){
 
 		}
@@ -33,13 +58,18 @@ The interface exposes two shared methods accross all sub classes :
 		function extend(params){
 			if (params) {
 				if (typeof params == "object") {
-
+					if (!Array.isArray(params)) {
+						
+					} else {
+						throw Error(translations[lang].typeObject);
+						return;
+					}
 				} else {
-					throw Error('Invalid argument. Constructor properies must be of type Object');
+					throw Error(translations[lang].typeObject);
 					return;
 				}
 			} else {
-				throw Error('Invalid argument count. At least a "name" property must be set.');
+				throw Error(translations[lang].name);
 				return;
 			}
 		}
@@ -47,11 +77,12 @@ The interface exposes two shared methods accross all sub classes :
 		if (!instance) {
 			instance = Object.create({ constructor : function App(){
 				//Disallow the hability to try to execute the constructor Function
-				throw Error("Illegal use of Constructor function. The App object can only be used as an interface through its methods");
+				throw Error(translations[lang].constructor);
 				}}, {
 				id : {value : randRange(100000, 9999999)},
 				extend : {value : extend},
-				create : {value : create}
+				create : {value : create},
+				setLang : {value : setLang}
 			});
 		}
 		return instance;
