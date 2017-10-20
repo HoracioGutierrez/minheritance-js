@@ -15,6 +15,34 @@ The interface exposes two shared methods accross all sub classes :
 
 */
 (function(window){
-	
+	//Create a namespace in window called app which holds the interface of the singleton app object instance
+	window.app = (function(){
+		let instance;
+		let allowed;
+
+		function randRange(min,max){
+			return Math.floor(Math.random()*(max-min+1))+min
+		}
+
+		function create(){
+
+		}
+
+		function extend(){
+
+		}
+
+		if (!instance) {
+			instance = Object.create({ constructor : function App(){
+			throw Error("Illegal use of Constructor function. The App object can only be used as an interface through its methods");
+			} }, {
+				id : {value : randRange(100000, 9999999)},
+				extend : {value : extend},
+				create : {value : create}
+			});
+		}
+		return instance;
+	})();
+
 })(window)
 
