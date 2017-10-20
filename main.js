@@ -17,7 +17,9 @@ The interface exposes two shared methods accross all sub classes :
 (function(window){
 	//Create a namespace in window called app which holds the interface of the singleton app object instance
 	window.app = (function(){
+		//Control the singleton with a private local variable 
 		let instance;
+		//Control each app extension and their respective allowed properties
 		let allowed;
 
 		function randRange(min,max){
@@ -28,14 +30,25 @@ The interface exposes two shared methods accross all sub classes :
 
 		}
 
-		function extend(){
+		function extend(params){
+			if (params) {
+				if (typeof params == "object") {
 
+				} else {
+					throw Error('Invalid argument. Constructor properies must be of type Object');
+					return;
+				}
+			} else {
+				throw Error('Invalid argument count. At least a "name" property must be set.');
+				return;
+			}
 		}
 
 		if (!instance) {
 			instance = Object.create({ constructor : function App(){
-			throw Error("Illegal use of Constructor function. The App object can only be used as an interface through its methods");
-			} }, {
+				//Disallow the hability to try to execute the constructor Function
+				throw Error("Illegal use of Constructor function. The App object can only be used as an interface through its methods");
+				}}, {
 				id : {value : randRange(100000, 9999999)},
 				extend : {value : extend},
 				create : {value : create}
