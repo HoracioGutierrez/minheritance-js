@@ -24,20 +24,25 @@ The interface exposes two shared methods accross all sub classes :
 				"constructor" : "Uso ilegal de la funcion Constructora. El objeto App solo puede ser usado como la interfaz a traves de sus metodos.",
 				"lang" : "Argumento Ilegal. El tipo de idioma debe ser String y tener como maximo 2 caracteres.",
 				"name" : "Cantidad invalida de argumentos. Por lo menos una propiedad 'name' debe ser creada.",
-				"typeObject" : "Argumento invalido. Parametos del constructor deben ser del tipo Object"
-
+				"typeObject" : "Argumento invalido. Parametos del constructor deben ser del tipo Object",
+				"nameType" : "Argumento Invalido. El nombre debe ser del tipo String.",
+				"classExist" : "Constructor Ilegal. Una clase con ese nombre ya se encuentra registrada"
 			},
 			en : {
 				"constructor" : "Illegal use of Constructor function. The App object can only be used as an interface through its methods",
 				"lang" : "Illegal Argument. Language must be of type String and have a maximum of 2 characters.",
 				"name" : "Invalid argument count. At least a 'name' property must be set.",
-				"typeObject" : "Invalid argument. Constructor properies must be of type Object"
+				"typeObject" : "Invalid argument. Constructor properies must be of type Object.",
+				"nameType" : "Invalid argument. The name must be of type String.",
+				"classExist" : "Illegal Constructor. A class with this name is already registered."
 			}
 		}
 		//Control the singleton with a private local variable 
 		let instance;
 		//Control each app extension and their respective allowed properties
 		let allowed;
+		//Control each app extension so they can't repeat
+		let _registeredClasses = [];
 
 		function randRange(min,max){
 			return Math.floor(Math.random()*(max-min+1))+min
@@ -59,7 +64,22 @@ The interface exposes two shared methods accross all sub classes :
 			if (params) {
 				if (typeof params == "object") {
 					if (!Array.isArray(params)) {
-						
+						if (params.name) {
+							if (typeof params.name == 'string') {
+								if (_registeredClasses.indexOf(params.name) < 0) {
+									_registeredClasses.push(params.name.toLowerCase());
+								} else {
+									throw Error(translations[lang].classExist);
+									return;
+								}
+							} else {
+								throw Error(translations[lang].nameType);
+								return;
+							}
+						} else {
+							throw Error(translations[lang].name);
+							return;
+						}
 					} else {
 						throw Error(translations[lang].typeObject);
 						return;
