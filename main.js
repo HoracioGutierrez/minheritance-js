@@ -1,114 +1,20 @@
+'use strict';
+/*
+MyHeritance.js
+Author : Horacio Gutierrez
+
+The API exposes an interface inside the property app in the global object window. It uses a singleton pattern so if you try to extend from it more than once, it'll always end up using the same app identifier. The constructor function is also canceled so nobody can create a new app from scratch.
+The interface exposes two shared methods accross all sub classes :
+
+-Extend : Function(String name[,Array allowed_props, Object methods])
+	The extend method requires only of a name so it can identify each class. This prevents creation of multiple classes with the same name accross the app. It can also take two optional parameters:
+		*)allowed_props : An array with the name of the allowed property this sub class supports. If the instance tries to use a prop that's not been registered during class creation, it will throw an error.
+		*)methods : An object containing all the class methods. These will be shared accross all instances of the same class.
+-Create : Function([Any params])
+	The create method requires no arguments to execute. It instanciates a new object from the given class and returns it. It can take a unique object as configuration which should contain the previously allowed properties for that instance. 
+
+*/
 (function(window){
-
-	function handleAllowedProps(params, container, context){
-		if (params.allowed || typeof params.allowed == "string") {
-			if (Array.isArray(params.allowed)) {
-				params.allowed.forEach(function(item){
-					if (typeof item == "string") {
-						if (item.length > 0) {
-							container.push(item);
-						} else {
-							throw Error("Invalid argument. Items in the allowed array cannot be empty strings");
-						}
-					} else {
-						throw Error("Invalid argument. Items in the allowed array must be of type String");
-						return;
-					}
-				});
-				resolveAllowed(context, container);
-			} else {
-				throw  Error('Invalid argument. The allowed property must be of type Array or null');
-				return;
-			}
-		}
-	}
-
-	function resolveAllowed(context, container){
-		if (context.allowed) {
-			context.allowed.forEach(function(item){
-				container.push(item);
-			});
-		}
-	}
-
-	function getAllAllowed(parent, self){
-		let new_props = self.getOwnAllowedProps().slice(0);
-		if (parent.getAllAllowedProps) {
-			var old_props = getAllAllowed(parent.__proto__, parent);
-		} else {
-			return new_props;
-		}
-		if (old_props && old_props.length > 0) {
-			old_props.forEach(function(prop){
-				if (new_props.indexOf(prop)==-1) {
-					new_props.push(prop);
-				}
-			});
-		}
-		return new_props;
-	}
-
-	function create(){
-
-	}
-
-	function extend(params){
-		let allowed_props = [];
-		let parent = this;
-		if (params) {
-			if (typeof params != "object" || Array.isArray(params)) {
-				throw Error('Invalid argument. Constructor properies must be of type Object');
-				return;
-			}
-			if (params.name) {
-				if (typeof params.name != "string") {
-					throw Error('Invalid argument count. Constructor must include a name');
-					return;	
-				}
-			} else { 
-				throw Error('Invalid argument count. Constructor must include a name');
-				return;
-			}
-			handleAllowedProps(params, allowed_props, parent);
-		}else{
-			if (params == "") {
-				throw Error('Invalid argument. Constructor properies must be of type Object');
-				return;
-			}
-		}
-		let _instance = Object.create(parent,{
-			constructor : {value : new Function("return function "+params.name+"(){}")()},
-			getOwnAllowedProps : {value : function(){
-				return allowed_props;
-			}},
-			getAllAllowedProps : {value : function(){
-				return getAllAllowed(this.__proto__, this)
-			}}
-		});
-		return _instance;
-	}
-	window.app = (function(){
-		let app = Object.create({ constructor : function App(){} }, {
-			extend : {value : extend}
-		})
-		return app;
-	})();
+	
 })(window)
 
-let person = app.extend({
-	name : "Person",
-	allowed : ['name', 'age']
-});
-
-let employee = person.extend({
-	name : "Employee",
-	allowed : ['salary']
-});
-
-let programmer = employee.extend({
-	name : "Programmer",
-	allowed : ['language']
-})
-
-let horacio = programmer.create();
-console.log(horacio);
