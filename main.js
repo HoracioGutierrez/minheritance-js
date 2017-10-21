@@ -26,7 +26,10 @@ The interface exposes two shared methods accross all sub classes :
 				"name" : "Cantidad invalida de argumentos. Por lo menos una propiedad 'name' debe ser creada.",
 				"typeObject" : "Argumento invalido. Parametos del constructor deben ser del tipo Object",
 				"nameType" : "Argumento Invalido. El nombre debe ser del tipo String.",
-				"classExist" : "Constructor Ilegal. Una clase con ese nombre ya se encuentra registrada"
+				"classExist" : "Constructor Ilegal. Una clase con ese nombre ya se encuentra registrada",
+				"allowedType" : "Argumento Invalido. La propiedad allowed debe ser del tipo Array.",
+				"allowedItemsType" : "Argumento Invalido. Items en el array allowed deben ser del tipo String.",
+				"emptyItem" : "Argumento Invalido. Items en el array allowed no pueden ser strings vacios"
 			},
 			en : {
 				"constructor" : "Illegal use of Constructor function. The App object can only be used as an interface through its methods",
@@ -34,7 +37,10 @@ The interface exposes two shared methods accross all sub classes :
 				"name" : "Invalid argument count. At least a 'name' property must be set.",
 				"typeObject" : "Invalid argument. Constructor properies must be of type Object.",
 				"nameType" : "Invalid argument. The name must be of type String.",
-				"classExist" : "Illegal Constructor. A class with this name is already registered."
+				"classExist" : "Illegal Constructor. A class with this name is already registered.",
+				"allowedType" : "Invalid argument. The allowed prop must be of type Array",
+				"allowedItemsType" : "Invalid argument. Items in the allowed array must be of type String",
+				"emptyItem" : "Invalid argument. Items in the allowed array cannot be empty strings"
 			}
 		}
 		//Control the singleton with a private local variable 
@@ -61,13 +67,23 @@ The interface exposes two shared methods accross all sub classes :
 		}
 
 		function extend(params){
+			let self = this;
+			//Check that there is at least some params
 			if (params) {
+				//Check if at least its type is object
 				if (typeof params == "object") {
+					//Check that it's not an array
 					if (!Array.isArray(params)) {
+						//Check that the params have a mandatory name prop
 						if (params.name) {
+							//Check that the name's value is a string
 							if (typeof params.name == 'string') {
+								//Check that it's not yet been registered
 								if (_registeredClasses.indexOf(params.name) < 0) {
+									//Register it to the class array
 									_registeredClasses.push(params.name.toLowerCase());
+									allowed[params.name.toLowerCase()] = [];
+									
 								} else {
 									throw Error(translations[lang].classExist);
 									return;
@@ -80,6 +96,37 @@ The interface exposes two shared methods accross all sub classes :
 							throw Error(translations[lang].name);
 							return;
 						}
+						//Check if the params have an allowed prop
+						if (params.allowed) {
+							//Check if it's an array
+							if (Array.isArray(params.allowed)) {
+								//Iterate over each element of the array
+								params.allowed.forEach(function(item){
+									//Check that each item is a string
+									if (typeof item == "string") {
+										//Check that they're not an empty string
+										if (item.length > 0) {
+											//Push it to the allowed object
+											allowed[params.name].push(item);
+										} else {
+											throw Error(translations[lang].emptyItem);
+										}
+									} else {
+										throw Error(translations[lang].allowedItemsType);
+										return;
+									}
+								});
+							} else {
+								throw Error(translations[lang].allowedType);
+								return;
+							}
+						}
+						let _constructorName = (function(name){
+							return name.charAt(0).toUpperCase() + name.slice(1);
+						})(params.name);
+						let _instance = Object.create(self, {
+							constructor : {value : new Function("return function "+_constructorName+"(){}")()}
+						})
 					} else {
 						throw Error(translations[lang].typeObject);
 						return;
