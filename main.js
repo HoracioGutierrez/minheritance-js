@@ -106,8 +106,22 @@ The interface exposes two shared methods accross all sub classes :
 									if (typeof item == "string") {
 										//Check that they're not an empty string
 										if (item.length > 0) {
-											//Push it to the allowed object
-											allowed[params.name].push(item);
+											//Iterate over each child, if any, in the allowed object
+											for(let child in allowed){
+												//get the length of each child
+												let long = child.length;
+												//iterate over each element in the child
+												for(let i = 0 ; i<long ; i++){
+													//check if the current element is equal to the item
+													if(child[i] == item){
+														//If it is, we don't add it again
+														continue;
+													} else {
+														//Push it to the allowed object
+														allowed[params.name].push(item);
+													}
+												}
+											}
 										} else {
 											throw Error(translations[lang].emptyItem);
 										}
@@ -121,9 +135,11 @@ The interface exposes two shared methods accross all sub classes :
 								return;
 							}
 						}
+						//Handmade class name
 						let _constructorName = (function(name){
 							return name.charAt(0).toUpperCase() + name.slice(1);
 						})(params.name);
+						//Create the instance after all errors could have occured
 						let _instance = Object.create(self, {
 							constructor : {value : new Function("return function "+_constructorName+"(){}")()}
 						})
@@ -141,6 +157,22 @@ The interface exposes two shared methods accross all sub classes :
 			}
 		}
 
+		function getOwnAllowedProps(){
+			return allowed[this];
+		}
+
+		function getAllAllowedProps(){
+			let buffer = [];
+			for(let child in allowed){
+				if (child.length > 0) {
+					child.forEach( function(prop) {
+						buffer.push(prop);
+					});
+				}
+			}
+			return buffer;
+		}
+
 		if (!instance) {
 			instance = Object.create({ constructor : function App(){
 				//Disallow the hability to try to execute the constructor Function
@@ -149,7 +181,9 @@ The interface exposes two shared methods accross all sub classes :
 				id : {value : randRange(100000, 9999999)},
 				extend : {value : extend},
 				create : {value : create},
-				setLang : {value : setLang}
+				setLang : {value : setLang},
+				getAllAllowedProps : {value : getAllAllowedProps},
+				getOwnAllowedProps : {value : getOwnAllowedProps}
 			});
 		}
 		return instance;
