@@ -1,5 +1,7 @@
-#**MyHeritance.js**
-###Author : Horacio Gutierrez
+# **MyHeritance.js**   
+
+### Author : Horacio Gutierrez   
+
 
 The API exposes an interface inside the property app in the global object window. It uses a singleton pattern so if you try to extend from it more than once, it'll always end up using the same app identifier. The constructor function is also canceled so nobody can create a new app from scratch.
 The interface exposes two shared methods accross all sub classes :
@@ -10,7 +12,9 @@ The interface exposes two shared methods accross all sub classes :
 		*)methods : An object containing all the class methods. These will be shared accross all instances of the same class.
 -Create : Function([Any params])
 	The create method requires no arguments to execute. It instanciates a new object from the given class and returns it. It can take a unique object as configuration which should contain the previously allowed properties for that instance.   
-##Example
+	 
+## Example   
+
 ```
 var programmer = app.extend({
 	name : 'Programmer',
