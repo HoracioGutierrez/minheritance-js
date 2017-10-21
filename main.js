@@ -29,7 +29,9 @@ The interface exposes two shared methods accross all sub classes :
 				"classExist" : "Constructor Ilegal. Una clase con ese nombre ya se encuentra registrada",
 				"allowedType" : "Argumento Invalido. La propiedad allowed debe ser del tipo Array.",
 				"allowedItemsType" : "Argumento Invalido. Items en el array allowed deben ser del tipo String.",
-				"emptyItem" : "Argumento Invalido. Items en el array allowed no pueden ser strings vacios"
+				"emptyItem" : "Argumento Invalido. Items en el array allowed no pueden ser strings vacios",
+				"methodType" : "Argumento Invalido. Los metodos del constructor deben ser del tipo Object",
+				"methodChild" : "Argumento Invalido, Los metodos deben ser del tipo Function"
 			},
 			en : {
 				"constructor" : "Illegal use of Constructor function. The App object can only be used as an interface through its methods",
@@ -40,7 +42,9 @@ The interface exposes two shared methods accross all sub classes :
 				"classExist" : "Illegal Constructor. A class with this name is already registered.",
 				"allowedType" : "Invalid argument. The allowed prop must be of type Array",
 				"allowedItemsType" : "Invalid argument. Items in the allowed array must be of type String",
-				"emptyItem" : "Invalid argument. Items in the allowed array cannot be empty strings"
+				"emptyItem" : "Invalid argument. Items in the allowed array cannot be empty strings",
+				"methodType" : "Invalid argument. Constructor methods be of type Object",
+				"methodChild" : "Invalid argument. All methods must be of type function"
 			}
 		}
 		//Control the singleton with a private local variable 
@@ -62,8 +66,31 @@ The interface exposes two shared methods accross all sub classes :
 			}
 		}
 
-		function create(){
-
+		function create(params){
+			let _instance = Object.create(this);
+			if (params) {
+				if (typeof params != "object" || Array.isArray(params)) {
+					throw Error(translations[lang].typeObject);
+					return;
+				}
+				let allowed_props = this.getAllAllowedProps();
+				let received_props = Object.keys(params);
+				received_props.forEach(function(i){
+					if (allowed_props.indexOf(i)==-1) {
+						throw Error("Invalid argument. Illegal key for class constructor");
+						return;
+					}
+					if (allowed_props.indexOf(i)>-1) {
+						Object.defineProperty(_instance, i , {
+							writable : false,
+							configurable : false,
+							enumerable : true,
+							value : params[i]
+						});
+					}
+				});
+			} 
+			return Object.preventExtensions(_instance);
 		}
 
 		function extend(params){
@@ -107,7 +134,7 @@ The interface exposes two shared methods accross all sub classes :
 										//Check that they're not an empty string
 										if (item.length > 0) {
 											//Push it to the allowed object
-											allowed[params.name].push(item);
+											allowed[params.name.toLowerCase()].push(item);
 										} else {
 											throw(new Error(translations[lang].emptyItem));
 										}
@@ -129,7 +156,25 @@ The interface exposes two shared methods accross all sub classes :
 						let _instance = Object.create(self, {
 							constructor : {value : new Function("return function "+_constructorName+"(){}")()}
 						});
-						return _instance;
+						if (params.methods) {
+							if (typeof params.methods != "object" || Array.isArray(params.methods)) {
+								throw Error(translations[lang].methodType);
+								return;	
+							}
+							for(let method in params.methods){
+								if (typeof params.methods[method] != "function") {
+									throw(new Error(translations[lang].methodChild));
+									return;
+								}
+								Object.defineProperty(_instance, method , {
+									writable : false,
+									configurable : false,
+									enumerable : false,
+									value : params.methods[method]
+								})
+							}
+						}
+						return Object.preventExtensions(_instance);
 					} else {
 						throw(new Error(translations[lang].typeObject));
 						return;
@@ -155,7 +200,6 @@ The interface exposes two shared methods accross all sub classes :
 
 		function getAllAllowedProps(){
 			let buffer = [];
-			console.log(allowed);
 			for(let child in allowed){
 				if (allowed[child].length > 0) {
 					allowed[child].forEach( function(prop) {
