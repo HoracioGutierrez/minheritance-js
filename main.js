@@ -46,7 +46,7 @@ The interface exposes two shared methods accross all sub classes :
 		//Control the singleton with a private local variable 
 		let instance;
 		//Control each app extension and their respective allowed properties
-		let allowed;
+		let allowed = {};
 		//Control each app extension so they can't repeat
 		let _registeredClasses = [];
 
@@ -58,7 +58,7 @@ The interface exposes two shared methods accross all sub classes :
 			if (typeof lan == "string" && lan.length == 2) {
 				lang = lan;
 			} else {
-				throw Error(translations[lang].lang)
+				throw(new Error(translations[lang].lang))
 			}
 		}
 
@@ -85,15 +85,15 @@ The interface exposes two shared methods accross all sub classes :
 									allowed[params.name.toLowerCase()] = [];
 									
 								} else {
-									throw Error(translations[lang].classExist);
+									throw(new Error(translations[lang].classExist));
 									return;
 								}
 							} else {
-								throw Error(translations[lang].nameType);
+								throw(new Error(translations[lang].nameType));
 								return;
 							}
 						} else {
-							throw Error(translations[lang].name);
+							throw(new Error(translations[lang].name));
 							return;
 						}
 						//Check if the params have an allowed prop
@@ -106,32 +106,18 @@ The interface exposes two shared methods accross all sub classes :
 									if (typeof item == "string") {
 										//Check that they're not an empty string
 										if (item.length > 0) {
-											//Iterate over each child, if any, in the allowed object
-											for(let child in allowed){
-												//get the length of each child
-												let long = child.length;
-												//iterate over each element in the child
-												for(let i = 0 ; i<long ; i++){
-													//check if the current element is equal to the item
-													if(child[i] == item){
-														//If it is, we don't add it again
-														continue;
-													} else {
-														//Push it to the allowed object
-														allowed[params.name].push(item);
-													}
-												}
-											}
+											//Push it to the allowed object
+											allowed[params.name].push(item);
 										} else {
-											throw Error(translations[lang].emptyItem);
+											throw(new Error(translations[lang].emptyItem));
 										}
 									} else {
-										throw Error(translations[lang].allowedItemsType);
+										throw(new Error(translations[lang].allowedItemsType));
 										return;
 									}
 								});
 							} else {
-								throw Error(translations[lang].allowedType);
+								throw(new Error(translations[lang].allowedType));
 								return;
 							}
 						}
@@ -142,30 +128,37 @@ The interface exposes two shared methods accross all sub classes :
 						//Create the instance after all errors could have occured
 						let _instance = Object.create(self, {
 							constructor : {value : new Function("return function "+_constructorName+"(){}")()}
-						})
+						});
+						return _instance;
 					} else {
-						throw Error(translations[lang].typeObject);
+						throw(new Error(translations[lang].typeObject));
 						return;
 					}
 				} else {
-					throw Error(translations[lang].typeObject);
+					throw(new Error(translations[lang].typeObject));
 					return;
 				}
 			} else {
-				throw Error(translations[lang].name);
+				throw(new Error(translations[lang].name));
 				return;
 			}
 		}
 
 		function getOwnAllowedProps(){
-			return allowed[this];
+			let props = allowed[this.constructor.name.toLowerCase()];
+			if (props.length > 0) {
+				return props;
+			} else {
+				return [];
+			}
 		}
 
 		function getAllAllowedProps(){
 			let buffer = [];
+			console.log(allowed);
 			for(let child in allowed){
-				if (child.length > 0) {
-					child.forEach( function(prop) {
+				if (allowed[child].length > 0) {
+					allowed[child].forEach( function(prop) {
 						buffer.push(prop);
 					});
 				}
@@ -176,7 +169,7 @@ The interface exposes two shared methods accross all sub classes :
 		if (!instance) {
 			instance = Object.create({ constructor : function App(){
 				//Disallow the hability to try to execute the constructor Function
-				throw Error(translations[lang].constructor);
+				throw(new Error(translations[lang].constructor));
 				}}, {
 				id : {value : randRange(100000, 9999999)},
 				extend : {value : extend},
